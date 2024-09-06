@@ -1,13 +1,17 @@
-import json
 import re
 import os.path
 from github import Github
+from gql import Client, gql
+from gql.transport.aiohttp import AIOHTTPTransport
 
 ###
 #
 # Things you might need to change
 #
 ###
+
+# Your GUAC GraphQL server
+GRAPHQL_SERVER = "http://localhost:8080/query"
 
 # File containing a PAT or classic token for GitHub authentication
 # If this file does not exist, we'll use an unauthenticated session,
@@ -38,12 +42,19 @@ response = github_session.search_repositories(query=f'topic:hacktoberfest')
 for repo in response:
     hacktoberfest_repos.append(repo.full_name)
 
-with open('output.json') as guac_file:
-    guac_data = json.load(guac_file)
-    guac_file.close()
-
 print("Searching your GUAC data")
-for source_entry in guac_data['data']['HasSourceAt']:
+transport = AIOHTTPTransport(url=GRAPHQL_SERVER, headers=\
+                    {'content-type': 'application/json'})
+gql_client = Client(transport=transport)
+
+with open('query.gql') as query_file:
+    gql_query = query_file.read()
+    query_file.close()
+
+real_query = gql(gql_query)
+guac_data = gql_client.execute(real_query)
+
+for source_entry in guac_data['HasSourceAt']:
     source = source_entry['source']['namespaces'][0]
 
     repo = source['namespace'] + '/' + source['names'][0]['name']

@@ -12,15 +12,18 @@ A script to search your GUAC data for projects partcipating in [Hacktoberfest](h
 
 ## Usage
 
-First, get the data you need from your GUAC instance's GraphQL playground:
+After installing any missing requirements, run `python3 ./guactober.py`
 
-1. Paste TODO
-2. Run the TODO
-3. Copy the output to `./output.json`
+The script assumes your query is in `./query.gql` and that your GraphQL query endpoint is `http://localhost:8080/query`.
 
-Then run this script:
+The table below describes setting you may want to change.
+All the settings described appear near the top of the script.
 
-1. `python3 ./guactober.py`
+| Setting | Description
+| ------- | -----------
+| GITHUB_TOKEN_FILE | The path on disk to a file containing your GitHub token (and only your GitHub token)
+| GRAPHQL_SERVER | The full URL to your GUAC GraphQL server's query endpoint
+
 
 The script will print a list of repositories that are listed as participating in Hacktoberfest.
 
