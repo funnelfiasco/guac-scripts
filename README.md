@@ -8,7 +8,9 @@ A script to search your [GUAC](https://guac.sh) data for projects partcipating i
     * json
     * re
     * PyGithub
-* A GitHub token (either a PAT or classic token) in `./.github_token`
+    * python-gitlab
+* (optional) A GitHub token (either a PAT or classic token) in `./.github_token`
+* (optional) A GitLab token in `./.gitlab_token`
 
 ## Usage
 
@@ -22,6 +24,7 @@ All the settings described appear near the top of the script.
 | Setting | Description
 | ------- | -----------
 | GITHUB_TOKEN_FILE | The path on disk to a file containing your GitHub token (and only your GitHub token)
+| GITLAB_TOKEN_FILE | The path on disk to a file containing your GitLab token (and only your GitLab token)
 | GRAPHQL_SERVER | The full URL to your GUAC GraphQL server's query endpoint
 
 

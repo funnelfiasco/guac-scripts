@@ -3,6 +3,7 @@
 import re
 import os.path
 from github import Github
+from gitlab import Gitlab
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
@@ -19,6 +20,11 @@ GRAPHQL_SERVER = "http://localhost:8080/query"
 # If this file does not exist, we'll use an unauthenticated session,
 # which probably means you'll get rate limited.
 GITHUB_TOKEN_FILE='.github_token'
+
+# File containing a PAT for GitLab authentication
+# If this file does not exist, we'll use an unauthenticated session,
+# which may mean you'll get rate limited.
+GITLAB_TOKEN_FILE='.gitlab_token'
 
 ###
 #
@@ -49,9 +55,35 @@ def queryGithub():
 
     response = github_session.search_repositories(query=f'topic:hacktoberfest')
     for repo in response:
-        gh_participants.append(repo.full_name)
+        gh_participants.append("github.com/" + repo.full_name)
 
     return gh_participants
+
+def queryGitlab():
+    '''
+    Search for GitHub repos with the "hacktoberfest" topic
+
+    Inputs: none
+    Outputs: gl_participants (list)
+    '''
+    gl_participants = []
+
+    # Test for a GitHub token file and setup the GitHub session
+    if os.path.exists(GITLAB_TOKEN_FILE):
+        with open('.gitlab_token') as gl_token_file:
+            gitlab_token = gl_token_file.read().strip()
+            gl_token_file.close()
+            gitlab_session = Gitlab(private_token=gitlab_token)
+    else:
+        gitlab_session = Gitlab()
+        print("Using unauthenticated session for GitLab," + \
+              "you may get rate limited!")
+    print("Getting list of Hacktoberfest repos from GitLab (be patient!)")
+
+    response = gitlab_session.projects.list(get_all=True, topic="hacktoberfest")
+    for repo in response:
+        gl_participants.append("gitlab.com/" + repo.path_with_namespace)
+    return gl_participants
 
 def queryGuac():
     '''
@@ -87,8 +119,7 @@ def findProjects(sources, participants):
     hacktoberfest_deps = []
     for repo in sources:
         if repo.startswith('github.com') or repo.startswith('gitlab.com'):
-            name = re.sub('git(hub|lab).com/', '', repo)
-            if name in participants:
+            if repo in participants:
                 hacktoberfest_deps.append(repo)
 
     print("Here are the Hacktoberfest projects in your GUAC data:")
@@ -100,5 +131,6 @@ sources = queryGuac()
 # Search the forges for participating projects
 participants = []
 participants.extend(queryGithub())
+participants.extend(queryGitlab())
 
 findProjects(sources, participants)
