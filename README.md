@@ -1,6 +1,6 @@
 # guactober
 
-A script to search your GUAC data for projects partcipating in [Hacktoberfest](https://hacktoberfest.com).
+A script to search your [GUAC](https://guac.sh) data for projects partcipating in [Hacktoberfest](https://hacktoberfest.com).
 
 ## Requirements
 
