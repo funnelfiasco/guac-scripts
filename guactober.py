@@ -4,7 +4,7 @@ import re
 import os.path
 from github import Github
 from gql import Client, gql
-from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.requests import RequestsHTTPTransport
 
 ###
 #
@@ -62,9 +62,8 @@ def queryGuac():
     '''
     sources = []
     print("Searching your GUAC data")
-    transport = AIOHTTPTransport(url=GRAPHQL_SERVER, headers=\
-                    {'content-type': 'application/json'})
-    gql_client = Client(transport=transport)
+    transport = RequestsHTTPTransport(url=GRAPHQL_SERVER)
+    gql_client = Client(transport=transport, fetch_schema_from_transport=True)
 
     with open('query.gql') as query_file:
         gql_query = gql(query_file.read())
