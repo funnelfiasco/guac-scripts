@@ -65,11 +65,10 @@ def queryGuac():
     gql_client = Client(transport=transport)
 
     with open('query.gql') as query_file:
-        gql_query = query_file.read()
+        gql_query = gql(query_file.read())
         query_file.close()
 
-    real_query = gql(gql_query)
-    guac_data = gql_client.execute(real_query)
+    guac_data = gql_client.execute(gql_query)
 
     for source_entry in guac_data['HasSourceAt']:
         source = source_entry['source']['namespaces'][0]
