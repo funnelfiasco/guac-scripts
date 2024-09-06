@@ -24,46 +24,81 @@ GITHUB_TOKEN_FILE='.github_token'
 #
 ###
 
-# Test for a GitHub token file and setup the GitHub session
-if os.path.exists(GITHUB_TOKEN_FILE):
-    with open('.github_token') as gh_token_file:
-        github_token = gh_token_file.read().strip()
-        gh_token_file.close()
-        github_session = Github(github_token)
-else:
-    github_session = Github()
-    print("Using unauthenticated session for GitHub," + \
-          "you may get rate limited!")
+def queryGithub():
+    '''
+    Search for GitHub repos with the "hacktoberfest" topic
 
-print("Getting list of Hacktoberfest repos from GitHub (be patient!)")
-hacktoberfest_deps = []
-hacktoberfest_repos = []
-response = github_session.search_repositories(query=f'topic:hacktoberfest')
-for repo in response:
-    hacktoberfest_repos.append(repo.full_name)
+    Inputs: none
+    Outputs: gh_participants (list)
+    '''
+    gh_participants = []
+    # Test for a GitHub token file and setup the GitHub session
+    if os.path.exists(GITHUB_TOKEN_FILE):
+        with open('.github_token') as gh_token_file:
+            github_token = gh_token_file.read().strip()
+            gh_token_file.close()
+            github_session = Github(github_token)
+    else:
+        github_session = Github()
+        print("Using unauthenticated session for GitHub," + \
+              "you may get rate limited!")
 
-print("Searching your GUAC data")
-transport = AIOHTTPTransport(url=GRAPHQL_SERVER, headers=\
+    print("Getting list of Hacktoberfest repos from GitHub (be patient!)")
+
+    response = github_session.search_repositories(query=f'topic:hacktoberfest')
+    for repo in response:
+        gh_participants.append(repo.full_name)
+
+    return gh_participants
+
+def queryGuac():
+    '''
+    Search the data in GUAC and return anything with HasSrcAt
+
+    Inputs: none
+    Outputs: sources (list)
+    '''
+    sources = []
+    print("Searching your GUAC data")
+    transport = AIOHTTPTransport(url=GRAPHQL_SERVER, headers=\
                     {'content-type': 'application/json'})
-gql_client = Client(transport=transport)
+    gql_client = Client(transport=transport)
 
-with open('query.gql') as query_file:
-    gql_query = query_file.read()
-    query_file.close()
+    with open('query.gql') as query_file:
+        gql_query = query_file.read()
+        query_file.close()
 
-real_query = gql(gql_query)
-guac_data = gql_client.execute(real_query)
+    real_query = gql(gql_query)
+    guac_data = gql_client.execute(real_query)
 
-for source_entry in guac_data['HasSourceAt']:
-    source = source_entry['source']['namespaces'][0]
+    for source_entry in guac_data['HasSourceAt']:
+        source = source_entry['source']['namespaces'][0]
+        sources.append(source['namespace'] + '/' + source['names'][0]['name'])
 
-    repo = source['namespace'] + '/' + source['names'][0]['name']
+    return sources
 
-    if repo.startswith('github.com'):
-        gh_name = re.sub('github.com/', '', repo)
-        if gh_name in hacktoberfest_repos:
-            hacktoberfest_deps.append(repo)
-        
-print("Here are the Hacktoberfest projects in your GUAC data:")
-for dep in hacktoberfest_deps:
-    print(dep)
+def findProjects(sources, participants):
+    '''
+    Search the participants from GitHub and GitLab in our GUAC data
+
+    Inputs: sources (list), participants(list)
+    Outputs: none
+    '''
+    hacktoberfest_deps = []
+    for repo in sources:
+        if repo.startswith('github.com') or repo.startswith('gitlab.com'):
+            name = re.sub('git(hub|lab).com/', '', repo)
+            if name in participants:
+                hacktoberfest_deps.append(repo)
+
+    print("Here are the Hacktoberfest projects in your GUAC data:")
+    for dep in hacktoberfest_deps:
+        print(dep)
+
+sources = queryGuac()
+
+# Search the forges for participating projects
+participants = []
+participants.extend(queryGithub())
+
+findProjects(sources, participants)
