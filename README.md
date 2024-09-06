@@ -29,7 +29,7 @@ The script will print a list of repositories that are listed as participating in
 
 ## License
 
-This project is licensed under the [GNU General Public License version 3](LICENSE).
+This project is licensed under the [copyleft-next 0.3.1 license](LICENSE).
 
 ## Contributing
 
