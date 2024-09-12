@@ -42,7 +42,7 @@ def queryGithub():
     gh_participants = []
     # Test for a GitHub token file and setup the GitHub session
     if os.path.exists(GITHUB_TOKEN_FILE):
-        with open('.github_token') as gh_token_file:
+        with open(GITHUB_TOKEN_FILE) as gh_token_file:
             github_token = gh_token_file.read().strip()
             gh_token_file.close()
             github_session = Github(github_token)
@@ -70,7 +70,7 @@ def queryGitlab():
 
     # Test for a GitHub token file and setup the GitHub session
     if os.path.exists(GITLAB_TOKEN_FILE):
-        with open('.gitlab_token') as gl_token_file:
+        with open(GITLAB_TOKEN_FILE) as gl_token_file:
             gitlab_token = gl_token_file.read().strip()
             gl_token_file.close()
             gitlab_session = Gitlab(private_token=gitlab_token)
